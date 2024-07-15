@@ -33,7 +33,23 @@ async function run() {
         const user = req.body;
         const result = await userCollection.insertOne(user);
         res.send(result);
-    })
+    });
+
+    // Login API
+    app.post('/login', async (req, res) => {
+      try {
+        const { mobileNumber, pin } = req.body;
+        const user = await userCollection.findOne({ mobileNumber: mobileNumber, pin: pin });
+
+        if (user) {
+          res.send({ success: true, message: 'Login successful', user });
+        } else {
+          res.send({ success: false, message: 'Invalid phone number or pin' });
+        }
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to login' });
+      }
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
