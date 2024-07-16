@@ -39,8 +39,6 @@ async function run() {
     app.post('/login', async (req, res) => {
       try {
         const { mobileNumber, pin } = req.body;
-    
-        // Find user with the given mobile number and pin
         const user = await userCollection.findOne({ mobileNumber: mobileNumber, pin: pin });
     
         if (user) {
@@ -59,6 +57,15 @@ async function run() {
       }
     });
     
+    // all users get api
+    app.get('/allUsers', async (req, res) => {
+      try {
+        const users = await userCollection.find().toArray();
+        res.send(users);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to fetch users' });
+      }
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
