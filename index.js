@@ -2,14 +2,13 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors());
 app.use(express.json());
 
-
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@biplob.whidwsu.mongodb.net/?appName=Biplob`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -20,6 +19,8 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+
 
 async function run() {
   try {
@@ -64,6 +65,43 @@ async function run() {
         res.send(users);
       } catch (error) {
         res.status(500).send({ error: 'Failed to fetch users' });
+      }
+    });
+
+
+     // Update user role and balance
+    app.put('/updateUserRole/:userId', async (req, res) => {
+      const userId = req.params.userId;
+      const { role, balance } = req.body;
+
+      try {
+        const user = await userCollection.findOne({ _id: new ObjectId(userId) });
+
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Update user role
+        await userCollection.updateOne(
+          { _id: new ObjectId(userId) },
+          { $set: { role: role } }
+        );
+
+        // Update balance if balanceIncrement is provided and role is 'user' or 'agent'
+        if (balance && (role === 'user' || role === 'agent')) {
+          await userCollection.updateOne(
+            { _id: new ObjectId(userId) },
+            { $inc: { balance: balance } }
+          );
+        }
+
+        // Fetch updated user
+        const updatedUser = await userCollection.findOne({ _id: new ObjectId(userId) });
+
+        res.json({ message: 'User role and balance updated successfully', user: updatedUser });
+      } catch (error) {
+        console.error('Error updating user role and balance:', error);
+        res.status(500).json({ error: 'Failed to update user role and balance' });
       }
     });
 
