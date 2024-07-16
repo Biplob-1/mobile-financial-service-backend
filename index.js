@@ -39,10 +39,18 @@ async function run() {
     app.post('/login', async (req, res) => {
       try {
         const { mobileNumber, pin } = req.body;
+    
+        // Find user with the given mobile number and pin
         const user = await userCollection.findOne({ mobileNumber: mobileNumber, pin: pin });
-
+    
         if (user) {
-          res.send({ success: true, message: 'Login successful', user });
+          // Check if the user has a valid role
+          const validRoles = ['admin', 'user', 'agent'];
+          if (validRoles.includes(user.role)) {
+            res.send({ success: true, message: 'Login successful', user });
+          } else {
+            res.send({ success: false, message: 'Invalid role' });
+          }
         } else {
           res.send({ success: false, message: 'Invalid phone number or pin' });
         }
@@ -50,6 +58,7 @@ async function run() {
         res.status(500).send({ error: 'Failed to login' });
       }
     });
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
