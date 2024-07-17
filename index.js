@@ -44,6 +44,15 @@ async function run() {
       const result = await transactionsCollection.insertOne(transaction);
       res.send(result);
   });
+  // all transaction get api
+    app.get('/allTransaction', async (req, res) => {
+      try {
+        const transactionsData = await transactionsCollection.find().toArray();
+        res.send(transactionsData);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to fetch users' });
+      }
+    });
 
     // Login API
     app.post('/login', async (req, res) => {
