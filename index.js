@@ -28,6 +28,7 @@ async function run() {
     await client.connect();
 
     const userCollection = client.db("mfs").collection("users")
+    const transactionsCollection = client.db("mfs").collection("transactions")
 
     // users insert api
     app.post('/insertUser', async (req, res) => {
@@ -35,6 +36,14 @@ async function run() {
         const result = await userCollection.insertOne(user);
         res.send(result);
     });
+
+    // transactions insert api
+    app.post('/insertTransactions', async (req, res) => {
+      const transaction = req.body;
+      transaction.createdAt = new Date();
+      const result = await transactionsCollection.insertOne(transaction);
+      res.send(result);
+  });
 
     // Login API
     app.post('/login', async (req, res) => {
